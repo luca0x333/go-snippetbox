@@ -56,6 +56,7 @@ func main() {
 	errorLog.Fatal(err)
 }
 
+// openDB() wraps sql.Open() and return *sql.DB or an error
 func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
