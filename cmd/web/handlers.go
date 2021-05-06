@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/luca0x333/go-snippetbox/pkg/models"
-	// "html/template"
 	"net/http"
 	"strconv"
 )
@@ -21,26 +20,8 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, snippet := range s {
-		fmt.Fprintf(w, "%v\n", snippet)
-	}
-
-	// files := []string{
-	// 	"./ui/html/home.page.tmpl",
-	// 	"./ui/html/base.layout.tmpl",
-	// 	"./ui/html/footer.partial.tmpl",
-	// }
-	//
-	// ts, err := template.ParseFiles(files...)
-	// if err != nil {
-	// 	app.serverError(w, err) // Use the serverError() helper.
-	// 	return
-	// }
-	//
-	// err = ts.Execute(w, nil)
-	// if err != nil {
-	// 	app.serverError(w, err) // Use the serverError() helper.
-	// }
+	// Call the render helper.
+	app.render(w, r, "home.page.tmpl", &templateData{Snippets: s})
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +41,8 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%v", s)
+	// Call the render helper.
+	app.render(w, r, "show.page.tmpl", &templateData{Snippet: s})
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
