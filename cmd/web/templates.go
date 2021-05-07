@@ -4,13 +4,29 @@ import (
 	"github.com/luca0x333/go-snippetbox/pkg/models"
 	"html/template"
 	"path/filepath"
+	"time"
 )
 
 // Define a templateData type to act as the holding structure for
 // any dynamic data that we want to pass to our HTML templates.
 type templateData struct {
-	Snippet  *models.Snippet
-	Snippets []*models.Snippet
+	Snippet     *models.Snippet
+	Snippets    []*models.Snippet
+	CurrentYear int
+}
+
+// humanDate returns a nicely formatted string containing time.Time object.
+func humanDate(t time.Time) string {
+	return t.Format("07 May 2021 at 15:39")
+}
+
+// FuncMap is the type of the map defining the mapping from names to
+// functions. Each function must have either a single return value, or two
+// return values of which the second has type error.
+// String-keyed map which acts as a lookup between the names of our custom template functions (names in template files)
+// and the name of the functions themselves.
+var functions = template.FuncMap{
+	"humanDate": humanDate,
 }
 
 func newTemplateCache(dir string) (map[string]*template.Template, error) {
@@ -30,8 +46,10 @@ func newTemplateCache(dir string) (map[string]*template.Template, error) {
 		// // Base returns the last element of path.
 		name := filepath.Base(page)
 
-		// Parse the page template file into a template set.
-		ts, err := template.ParseFiles(page)
+		// The template.FuncMap must be registered with the template set before you call ParseFiles().
+		// Create a new empty template with template.New(), use Funcs() to register the template.FuncMap
+		// and then parse the file.
+		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}

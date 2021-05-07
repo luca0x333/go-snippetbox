@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 // The serverError helper writes an error message and stack trace to the errorLog,
@@ -33,9 +35,32 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 		app.serverError(w, fmt.Errorf("the template %s does not exist", name))
 	}
 
-	// Execute the template set passing a *templateData struct.
-	err := ts.Execute(w, td)
+	// The new built-in function allocates memory.
+	// Initialize a new buffer.
+	buf := new(bytes.Buffer)
+
+	// Write the template set to the buffer instead of http.ResponseWriter.
+	// Call serverError method and return in case of an error.
+	// Also inject the current year into the templateData.
+	err := ts.Execute(buf, app.addDefaultData(td, r))
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
+
+	// Write the contents of the buffer to the http.ResponseWriter.
+	// WriteTo() takes an io.Writer.
+	buf.WriteTo(w)
+}
+
+// addDefaultData takes a pointer to templateData struct and add the current year to CurrentYear field
+// and returns the pointer.
+func (app *application) addDefaultData(td *templateData, r *http.Request) *templateData {
+	if td == nil {
+		td = &templateData{}
+	}
+
+	td.CurrentYear = time.Now().Year()
+
+	return td
 }
