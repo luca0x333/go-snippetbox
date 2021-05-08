@@ -1,8 +1,14 @@
 package main
 
-import "net/http"
+import (
+	"github.com/justinas/alice"
+	"net/http"
+)
 
 func (app *application) routes() http.Handler {
+	// Middleware chain using alice package.
+	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.home)
 	mux.HandleFunc("/snippet", app.showSnippet)
@@ -12,5 +18,7 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
 	// recoverPanic <-> logRequest <-> secureHeaders <-> servemux <-> application handler
-	return app.recoverPanic(app.logRequest(secureHeaders(mux)))
+	// When the request comes in, it will be passed to m1, then m2, then m3
+	// and finally, the given handler
+	return standardMiddleware.Then(mux)
 }
