@@ -6,6 +6,8 @@ import (
 	"github.com/luca0x333/go-snippetbox/pkg/models"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +59,41 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	title := r.PostForm.Get("title")
 	content := r.PostForm.Get("content")
 	expires := r.PostForm.Get("expires")
+
+	// Initialize a map to hold validation errors.
+	errors := make(map[string]string)
+
+	// Check that the title field is not blank and is not more than 100 characters long.
+	if strings.TrimSpace(title) == "" {
+		errors["title"] = "This field cannot be blank"
+		// We are using RuneCountInString() function and not len() because we want to count the number
+		// of characters and not the number bytes.
+	} else if utf8.RuneCountInString(title) > 100 {
+		errors["title"] = "This field is too long (maximum is 100 characters)"
+	}
+
+	// Check that content field is not blank.
+	if strings.TrimSpace(content) == "" {
+		errors["content"] = "This field cannot be blank"
+	}
+
+	// Check that expires field is not blank and match one of permitted values.
+	if strings.TrimSpace(expires) == "" {
+		errors["expires"] = "This field cannot be blank"
+	} else if expires != "365" && expires != "7" && expires != "1" {
+		errors["expires"] = "This field is invalid"
+	}
+
+	// If there are any validation errors, re-display the create page template passing in
+	// the validation errors and previously submitted r.PostForm data.
+	// r.PostForm has url.Values has underlying type as FormData field.
+	if len(errors) > 0 {
+		app.render(w, r, "create.page.tmpl", &templateData{
+			FormErrors: errors,
+			FormData:   r.PostForm,
+		})
+		return
+	}
 
 	// Create a snipper record in the database using the form data.
 	id, err := app.snippets.Insert(title, content, expires)

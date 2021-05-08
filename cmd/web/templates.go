@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/luca0x333/go-snippetbox/pkg/models"
 	"html/template"
+	"net/url"
 	"path/filepath"
 	"time"
 )
@@ -13,6 +14,9 @@ type templateData struct {
 	Snippet     *models.Snippet
 	Snippets    []*models.Snippet
 	CurrentYear int
+	FormErrors  map[string]string
+	// url.Values is the same underlying type as r.PostForm map we used in createSnippet method.
+	FormData url.Values
 }
 
 // humanDate returns a nicely formatted string containing time.Time object.
