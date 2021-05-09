@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"github.com/golangcollege/sessions"
@@ -64,15 +65,32 @@ func main() {
 		templateCache: templateCache,
 	}
 
+	// Initialize a new tls.Config struct to overwrite the default TLS settings we want to change.
+	tlsConfig := &tls.Config{
+		// By setting PreferServerCipherSuites to "true" Go's cipher suites are preferred over the user cipher suites.
+		PreferServerCipherSuites: true,
+		// CurvePreferences field lets us specify which elliptic curves
+		// should be given preference during the TLS handshake.
+		//
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
 	srv := &http.Server{
-		Addr:     *addr,
-		ErrorLog: errorLog,
-		Handler:  app.routes(), // Call routes() method.
+		Addr:      *addr,
+		ErrorLog:  errorLog,
+		Handler:   app.routes(), // Call routes() method.
+		TLSConfig: tlsConfig,
+		// Add Idle, Read and Write timeouts to the server.
+		// If you set ReadTimeout but don’t set IdleTimeout,
+		// then IdleTimeout will default to using the same setting as ReadTimeout.
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	// flag.String() returns a pointer.
 	infoLog.Printf("Starting server on %s", *addr)
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	errorLog.Fatal(err)
 }
 
