@@ -19,6 +19,10 @@
             <a href='/snippet/create'>Create snippet</a>
         </nav>
     <main>
+        <!-- The "with .Flash" block is evaluated only if the value of "flash" is not an empty string. -->
+        {{with .Flash}}
+        <div class='flash'>{{.}}</div>
+        {{end}}
         {{template "main" .}}
     </main>
     {{template "footer" .}}

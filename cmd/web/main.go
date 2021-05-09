@@ -3,11 +3,13 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"github.com/golangcollege/sessions"
 	"github.com/luca0x333/go-snippetbox/pkg/models/mysql"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -15,6 +17,7 @@ import (
 type application struct {
 	errorLog      *log.Logger
 	infoLog       *log.Logger
+	session       *sessions.Session
 	snippets      *mysql.SnippetModel
 	templateCache map[string]*template.Template
 }
@@ -23,6 +26,7 @@ func main() {
 	// Default port 4000
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	dsn := flag.String("dsn", "web_user:password@/snippetbox?parseTime=true", "MySQL data source name")
+	secret := flag.String("secret", "z6Nah+pPonzHbI*+9Pk8qNWhTzbpa@ge", "Secret Key")
 
 	flag.Parse()
 
@@ -45,10 +49,17 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	// Initialize a new session manager.
+	// flag.String() returns a pointer.
+	session := sessions.New([]byte(*secret))
+	// Lifetime sets the maximum length of time that a session is valid for before it expires.
+	session.Lifetime = 12 * time.Hour
+
 	// Initialize a new instance of application.
 	app := &application{
 		errorLog:      errorLog,
 		infoLog:       infoLog,
+		session:       session,
 		snippets:      &mysql.SnippetModel{DB: db},
 		templateCache: templateCache,
 	}

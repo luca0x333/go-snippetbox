@@ -76,6 +76,11 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Put() add a string value "Snippet.." and a corresponding key "flash" to the session data.
+	// If a session for the current user does not exist, it will be created automatically
+	// by the session middleware.
+	app.session.Put(r, "flash", "Snippet successfully created!")
+
 	// Redirect the user to the relevant page for the snippet.
 	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }

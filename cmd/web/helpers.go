@@ -41,7 +41,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 
 	// Write the template set to the buffer instead of http.ResponseWriter.
 	// Call serverError method and return in case of an error.
-	// Also inject the current year into the templateData.
+	// Also inject the default data into the templateData.
 	err := ts.Execute(buf, app.addDefaultData(td, r))
 	if err != nil {
 		app.serverError(w, err)
@@ -53,7 +53,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	buf.WriteTo(w)
 }
 
-// addDefaultData takes a pointer to templateData struct and add the current year to CurrentYear field
+// addDefaultData takes a pointer to templateData struct, add some default data to the struct and return it.
 // and returns the pointer.
 func (app *application) addDefaultData(td *templateData, r *http.Request) *templateData {
 	if td == nil {
@@ -61,6 +61,10 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 	}
 
 	td.CurrentYear = time.Now().Year()
+
+	// PopString returns the string value for a given key and then deletes it from the
+	// session data. One-time fetch.
+	td.Flash = app.session.PopString(r, "flash")
 
 	return td
 }
