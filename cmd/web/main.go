@@ -21,6 +21,7 @@ type application struct {
 	session       *sessions.Session
 	snippets      *mysql.SnippetModel
 	templateCache map[string]*template.Template
+	users         *mysql.UserModel
 }
 
 func main() {
@@ -63,6 +64,7 @@ func main() {
 		session:       session,
 		snippets:      &mysql.SnippetModel{DB: db},
 		templateCache: templateCache,
+		users:         &mysql.UserModel{DB: db},
 	}
 
 	// Initialize a new tls.Config struct to overwrite the default TLS settings we want to change.
@@ -71,7 +73,6 @@ func main() {
 		PreferServerCipherSuites: true,
 		// CurvePreferences field lets us specify which elliptic curves
 		// should be given preference during the TLS handshake.
-		//
 		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
 	}
 
