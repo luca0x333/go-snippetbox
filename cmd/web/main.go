@@ -56,6 +56,10 @@ func main() {
 	session := sessions.New([]byte(*secret))
 	// Lifetime sets the maximum length of time that a session is valid for before it expires.
 	session.Lifetime = 12 * time.Hour
+	// CSRF SameSite cookies
+	// SameSite is not fully supported by all browsers.
+	session.Secure = true
+	session.SameSite = http.SameSiteStrictMode
 
 	// Initialize a new instance of application.
 	app := &application{

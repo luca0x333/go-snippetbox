@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/justinas/nosurf"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -59,6 +60,9 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 	if td == nil {
 		td = &templateData{}
 	}
+
+	// Add the CSRF token to the templateData struct.
+	td.CSRFToken = nosurf.Token(r)
 
 	td.CurrentYear = time.Now().Year()
 
