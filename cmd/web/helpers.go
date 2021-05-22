@@ -66,5 +66,13 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 	// session data. One-time fetch.
 	td.Flash = app.session.PopString(r, "flash")
 
+	// Authentication status
+	td.IsAuthenticated = app.isAuthenticated(r)
+
 	return td
+}
+
+// isAuthenticated return true if "authenticatedUserID" exists in the user session, otherwise return false.
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.session.Exists(r, "authenticatedUserID")
 }
