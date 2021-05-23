@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/justinas/nosurf"
+	"github.com/luca0x333/go-snippetbox/pkg/models"
 	"net/http"
 )
 
@@ -74,4 +77,36 @@ func NoSurf(next http.Handler) http.Handler {
 	})
 
 	return csrfHandler
+}
+
+// authenticate middleware fetches the user's ID from their session, checks the database to see if the ID is valid
+// and the user is active, then updates the request context to include this information.
+func (app *application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check if a authenticatedUserID value exists in the session.
+		// If it does not exist call the next handler in the chain.
+		exists := app.session.Exists(r, "authenticatedUserID")
+		if !exists {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Fetch the details of the current user from the database.
+		// If no record is found or the user is deactivated, remove "authenticatedUserID" value from their session
+		// and call the next handler in the chain.
+		user, err := app.users.Get(app.session.GetInt(r, "authenticatedUserID"))
+		if errors.Is(err, models.ErrNoRecord) || !user.Active {
+			app.session.Remove(r, "authenticatedUserID")
+			next.ServeHTTP(w, r)
+			return
+		} else if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		// If the request is coming from an authenticated and active user, we create a new copy of the request adding
+		// "contextKeyIsAuthenticated" true and call the next handler in the chain using the new copy of the request.
+		ctx := context.WithValue(r.Context(), contextKeyIsAuthenticated, true)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

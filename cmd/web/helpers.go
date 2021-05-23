@@ -76,7 +76,12 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 	return td
 }
 
-// isAuthenticated return true if "authenticatedUserID" exists in the user session, otherwise return false.
+// isAuthenticated return true if "authenticatedUserID" exists in the request context.
 func (app *application) isAuthenticated(r *http.Request) bool {
-	return app.session.Exists(r, "authenticatedUserID")
+	isAuthenticated, ok := r.Context().Value(contextKeyIsAuthenticated).(bool)
+	if !ok {
+		return false
+	}
+
+	return isAuthenticated
 }
