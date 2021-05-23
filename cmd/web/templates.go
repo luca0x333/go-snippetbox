@@ -22,7 +22,7 @@ type templateData struct {
 
 // humanDate returns a nicely formatted string containing time.Time object.
 func humanDate(t time.Time) string {
-	return t.Format("07 May 2021 at 15:39")
+	return t.UTC().Format("02 Jan 2006 at 15:04")
 }
 
 // FuncMap is the type of the map defining the mapping from names to
