@@ -22,6 +22,12 @@ type templateData struct {
 
 // humanDate returns a nicely formatted string containing time.Time object.
 func humanDate(t time.Time) string {
+	// Return an empty string if "t" has zero value.
+	if t.IsZero() {
+		return ""
+	}
+
+	// Convert the time in UTC before formatting it.
 	return t.UTC().Format("02 Jan 2006 at 15:04")
 }
 
