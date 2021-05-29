@@ -2,34 +2,34 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestPing(t *testing.T) {
-	// Initialize a new httptest.ResponseRecorder.
-	rr := httptest.NewRecorder()
+	// Create a new instance of our application struct.
+	app := &application{
+		errorLog: log.New(ioutil.Discard, "", 0),
+		infoLog:  log.New(ioutil.Discard, "", 0),
+	}
 
-	// Initialize a new dummy http.Request.
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	// Create a new test server passing by the values returned by app.routes() method.
+	ts := httptest.NewTLSServer(app.routes())
+	defer ts.Close()
+
+	// Make a GET request to /ping. It returns a http.Response struct containing the response.
+	rs, err := ts.Client().Get(ts.URL + "/ping")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Call the ping function passing in httptest.ResponseRecorder and http.Request.
-	ping(rr, r)
-
-	// Call the Result() method on the httptest.ResponseRecorder to get http.Response generated
-	// by the ping() handler.
-	rs := rr.Result()
-
-	// Check if the status code in the response is 200
+	// Check the value of the response status code and body.
 	if rs.StatusCode != http.StatusOK {
 		t.Errorf("want %d; got %d", http.StatusOK, rs.StatusCode)
 	}
 
-	// Check the response body written by the ping() handler is "OK"
 	defer rs.Body.Close()
 	body, err := ioutil.ReadAll(rs.Body)
 	if err != nil {
